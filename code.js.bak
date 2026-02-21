@@ -11,8 +11,7 @@ figma.ui.onmessage = async (msg) => {
       await fn(figma);
       figma.ui.postMessage({ type: 'done' });
     } catch (err) {
-      const errMsg = (err && (err.message || err.toString())) || JSON.stringify(err) || 'unknown error';
-      figma.ui.postMessage({ type: 'error', message: errMsg });
+      figma.ui.postMessage({ type: 'error', message: err.message });
     }
   }
 };

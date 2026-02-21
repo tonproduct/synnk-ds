@@ -6,6 +6,7 @@
 /* ── Token system ── */
 @import "../tokens/primitives.css";
 @import "../tokens/semantic.css";
+@import "../tokens/theme.css";
 @import "../tokens/components/button.css";
 
 /* ── Tailwind theme bridge ── */
