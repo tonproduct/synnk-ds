@@ -4,8 +4,36 @@ export default function PaginaTeste() {
   return (
     <div className="min-h-screen bg-white font-sans">
 
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes fadeRight {
+          from { opacity: 0; transform: translateX(32px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .anim { animation-fill-mode: both; animation-timing-function: cubic-bezier(0.22,1,0.36,1); }
+        .fade-up  { animation-name: fadeUp;    animation-duration: 0.7s; }
+        .fade-in  { animation-name: fadeIn;    animation-duration: 0.6s; }
+        .fade-right { animation-name: fadeRight; animation-duration: 0.8s; }
+        .d0   { animation-delay: 0ms; }
+        .d100 { animation-delay: 100ms; }
+        .d200 { animation-delay: 200ms; }
+        .d300 { animation-delay: 300ms; }
+        .d400 { animation-delay: 400ms; }
+        .d500 { animation-delay: 500ms; }
+        .d600 { animation-delay: 600ms; }
+        .d700 { animation-delay: 700ms; }
+        .d800 { animation-delay: 800ms; }
+      `}</style>
+
       {/* ── Nav ── */}
-      <nav className="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
+      <nav className="anim fade-in d0 flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
           <div
             className="size-8 rounded-full flex items-center justify-center"
@@ -50,7 +78,7 @@ export default function PaginaTeste() {
 
           {/* Badge */}
           <div
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5"
+            className="anim fade-up d100 inline-flex items-center gap-2 rounded-full px-3 py-1.5"
             style={{ backgroundColor: "#EDFAAA" }}
           >
             <span
@@ -66,7 +94,7 @@ export default function PaginaTeste() {
 
           {/* Heading */}
           <h1
-            className="text-5xl font-bold leading-[1.15] tracking-tight"
+            className="anim fade-up d200 text-5xl font-bold leading-[1.15] tracking-tight"
             style={{ color: "#111C11" }}
           >
             O primeiro agente<br />
@@ -85,7 +113,7 @@ export default function PaginaTeste() {
           </h1>
 
           {/* Body */}
-          <p className="text-gray-500 text-base leading-relaxed max-w-[420px]">
+          <p className="anim fade-up d300 text-gray-500 text-base leading-relaxed max-w-[420px]">
             O Pluma é o único app que combina Open Finance com IA
             conversacional para dar respostas instantâneas sobre suas
             finanças — sem você precisar interpretar gráficos complicados
@@ -94,14 +122,14 @@ export default function PaginaTeste() {
 
           {/* CTA */}
           <button
-            className="px-8 py-4 rounded-full text-base font-semibold transition-opacity hover:opacity-90"
+            className="anim fade-up d400 px-8 py-4 rounded-full text-base font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: "#C4F233", color: "#1A3B1A" }}
           >
             Teste grátis por 14 dias
           </button>
 
           {/* Trust badges */}
-          <div className="flex items-center gap-7 text-sm text-gray-500">
+          <div className="anim fade-up d500 flex items-center gap-7 text-sm text-gray-500">
             <div className="flex items-center gap-1.5">
               <svg className="size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -122,7 +150,7 @@ export default function PaginaTeste() {
 
           {/* ── Phone ── */}
           <div
-            className="relative w-[220px] h-[430px] rounded-[2.5rem] shadow-2xl overflow-hidden z-10"
+            className="anim fade-right d300 relative w-[220px] h-[430px] rounded-[2.5rem] shadow-2xl overflow-hidden z-10"
             style={{ backgroundColor: "#173317" }}
           >
             {/* Status bar */}
@@ -184,7 +212,7 @@ export default function PaginaTeste() {
           </div>
 
           {/* ── Floating card: Economia ── */}
-          <div className="absolute top-6 -left-2 bg-white rounded-2xl shadow-xl p-3 w-[200px] z-20">
+          <div className="anim fade-in d500 absolute top-6 -left-2 bg-white rounded-2xl shadow-xl p-3 w-[200px] z-20">
             <div className="flex items-center gap-2.5">
               <div
                 className="size-9 rounded-full flex items-center justify-center shrink-0"
@@ -203,7 +231,7 @@ export default function PaginaTeste() {
 
           {/* ── Floating credit card ── */}
           <div
-            className="absolute top-[170px] -left-10 rounded-2xl p-4 w-[175px] shadow-2xl z-20"
+            className="anim fade-in d600 absolute top-[170px] -left-10 rounded-2xl p-4 w-[175px] shadow-2xl z-20"
             style={{ backgroundColor: "#1A3B1A" }}
           >
             <div className="flex justify-between items-start mb-6">
@@ -217,7 +245,7 @@ export default function PaginaTeste() {
           </div>
 
           {/* ── Floating card: Meta Viagem ── */}
-          <div className="absolute bottom-14 -right-4 bg-white rounded-2xl shadow-xl p-3 w-[195px] z-20">
+          <div className="anim fade-in d700 absolute bottom-14 -right-4 bg-white rounded-2xl shadow-xl p-3 w-[195px] z-20">
             <div className="flex items-center gap-2.5">
               <div
                 className="size-9 rounded-full flex items-center justify-center shrink-0"
@@ -235,10 +263,10 @@ export default function PaginaTeste() {
           </div>
 
           {/* ── Decorative: coin ── */}
-          <div className="absolute top-0 right-6 text-4xl z-10 drop-shadow-lg">🪙</div>
+          <div className="anim fade-in d800 absolute top-0 right-6 text-4xl z-10 drop-shadow-lg">🪙</div>
 
           {/* ── Decorative: money bag ── */}
-          <div className="absolute bottom-4 right-10 text-4xl z-10 drop-shadow-lg">💵</div>
+          <div className="anim fade-in d800 absolute bottom-4 right-10 text-4xl z-10 drop-shadow-lg">💵</div>
 
         </div>
       </section>
