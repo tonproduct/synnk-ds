@@ -5,13 +5,20 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 const nav = [
-  { label: "Overview", href: "/design-system", group: null },
-  { label: "Colors",      href: "/design-system/colors",      group: "Tokens" },
-  { label: "Typography",  href: "/design-system/typography",  group: "Tokens" },
-  { label: "Radius",      href: "/design-system/radius",      group: "Tokens" },
-  { label: "Button",      href: "/design-system/components/button", group: "Components" },
-  { label: "Input",       href: "/design-system/components/input",  group: "Components" },
-  { label: "Rating",      href: "/design-system/components/rating", group: "Components" },
+  { label: "Overview",      href: "/design-system",                          group: null },
+  { label: "Colors",        href: "/design-system/colors",                   group: "Tokens" },
+  { label: "Typography",    href: "/design-system/typography",               group: "Tokens" },
+  { label: "Radius",        href: "/design-system/radius",                   group: "Tokens" },
+  { label: "Button",        href: "/design-system/components/button",        group: "Components" },
+  { label: "Input",         href: "/design-system/components/input",         group: "Components" },
+  { label: "Form Controls", href: "/design-system/components/form-controls", group: "Components" },
+  { label: "Rating",        href: "/design-system/components/rating",        group: "Components" },
+  { label: "Card",          href: "/design-system/components/card",          group: "Components" },
+  { label: "Badge",         href: "/design-system/components/badge",         group: "Components" },
+  { label: "Avatar",        href: "/design-system/components/avatar",        group: "Components" },
+  { label: "Dialog",        href: "/design-system/components/dialog",        group: "Components" },
+  { label: "Table",         href: "/design-system/components/table",         group: "Components" },
+  { label: "Feedback",      href: "/design-system/components/feedback",      group: "Components" },
 ]
 
 export function Sidebar() {
