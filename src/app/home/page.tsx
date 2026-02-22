@@ -53,39 +53,61 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <section className="relative text-center px-6 pt-6 pb-0 overflow-hidden">
 
-        {/* Floating icon — VS Code */}
+        {/* ── Floating icons LEFT ── */}
+
+        {/* Cursor */}
         <div
-          className="absolute size-14 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
-          style={{ left: "8%", top: "10px" }}
+          className="anim fade-up d100 absolute size-14 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ left: "6%", top: "5px" }}
         >
-          <svg viewBox="0 0 100 100" className="w-7 h-7">
-            <path d="M74.6 6.5L40.1 37.4 17.4 20.8 6.7 27.1 27.5 50 6.7 72.9 17.4 79.2 40.1 62.6 74.6 93.5 93.3 83.5V16.5Z" fill="#007ACC" />
-            <path d="M74.6 6.5v87L40.1 62.6 27.5 50 40.1 37.4Z" fill="#1F9CF0" opacity="0.7" />
-            <path d="M17.4 20.8L40.1 37.4 27.5 50 40.1 62.6 17.4 79.2 6.7 72.9 27.5 50 6.7 27.1Z" fill="#0065A9" />
+          <svg viewBox="0 0 100 100" className="w-8 h-8">
+            <rect width="100" height="100" rx="22" fill="#000" />
+            <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="white" />
           </svg>
         </div>
 
-        {/* Floating icon — Network graph */}
+        {/* React */}
         <div
-          className="absolute size-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
-          style={{ left: "11%", top: "110px" }}
+          className="anim fade-up d200 absolute size-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ left: "2%", top: "138px" }}
         >
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
-            <circle cx="4"  cy="12" r="2.4" fill="#f43f5e" />
-            <circle cx="20" cy="5"  r="2.4" fill="#f43f5e" />
-            <circle cx="20" cy="19" r="2.4" fill="#f43f5e" />
-            <circle cx="12" cy="12" r="1.8" fill="#fda4af" />
-            <line x1="6.2" y1="10.9" x2="10.4" y2="12" stroke="#fda4af" strokeWidth="1.2" />
-            <line x1="6.2" y1="13.1" x2="10.4" y2="12" stroke="#fda4af" strokeWidth="1.2" />
-            <line x1="13.6" y1="11"  x2="17.8" y2="6.2" stroke="#fda4af" strokeWidth="1.2" />
-            <line x1="13.6" y1="13" x2="17.8" y2="17.8" stroke="#fda4af" strokeWidth="1.2" />
+          <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
+            <circle cx="50" cy="50" r="8" fill="#61DAFB" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(60 50 50)" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(120 50 50)" />
           </svg>
         </div>
 
-        {/* Floating icon — Figma */}
+        {/* n8n */}
         <div
-          className="absolute size-14 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
-          style={{ right: "8%", top: "30px" }}
+          className="anim fade-up d300 absolute size-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ left: "7%", top: "272px" }}
+        >
+          <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
+            <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="84" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <line x1="29" y1="30" x2="71" y2="30" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="50" cy="30" r="8" fill="#FF6D5A" />
+          </svg>
+        </div>
+
+        {/* ── Floating icons RIGHT ── */}
+
+        {/* Vercel */}
+        <div
+          className="anim fade-up d200 absolute size-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ right: "6%", top: "15px" }}
+        >
+          <svg viewBox="0 0 100 87" className="w-7 h-6">
+            <path d="M50 0L100 87H0Z" fill="#000" />
+          </svg>
+        </div>
+
+        {/* Figma */}
+        <div
+          className="anim fade-up d100 absolute size-14 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ right: "2%", top: "138px" }}
         >
           <svg viewBox="0 0 38 57" className="w-5 h-8">
             <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
@@ -93,6 +115,16 @@ export default function HomePage() {
             <path d="M19 0v19h9.5a9.5 9.5 0 0 0 0-19H19z" fill="#FF7262" />
             <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#F24E1E" />
             <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#A259FF" />
+          </svg>
+        </div>
+
+        {/* Supabase */}
+        <div
+          className="anim fade-up d300 absolute size-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center"
+          style={{ right: "7%", top: "268px" }}
+        >
+          <svg viewBox="0 0 100 100" className="w-6 h-6">
+            <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
           </svg>
         </div>
 
