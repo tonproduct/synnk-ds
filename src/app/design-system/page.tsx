@@ -4,6 +4,7 @@ const tokens = [
   { label: "Colors",     href: "/design-system/colors",     desc: "Paleta primitiva, tokens semânticos light e dark." },
   { label: "Typography", href: "/design-system/typography", desc: "Escala tipográfica, famílias de fonte e pesos." },
   { label: "Radius",     href: "/design-system/radius",     desc: "Escala de border-radius com tokens primitivos." },
+  { label: "Motion",     href: "/design-system/motion",     desc: "Keyframes e classes utilitárias de animação." },
 ]
 
 const components = [

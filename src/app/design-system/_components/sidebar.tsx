@@ -9,6 +9,7 @@ const nav = [
   { label: "Colors",        href: "/design-system/colors",                   group: "Tokens" },
   { label: "Typography",    href: "/design-system/typography",               group: "Tokens" },
   { label: "Radius",        href: "/design-system/radius",                   group: "Tokens" },
+  { label: "Motion",        href: "/design-system/motion",                   group: "Tokens" },
   { label: "Button",        href: "/design-system/components/button",        group: "Components" },
   { label: "Input",         href: "/design-system/components/input",         group: "Components" },
   { label: "Form Controls", href: "/design-system/components/form-controls", group: "Components" },

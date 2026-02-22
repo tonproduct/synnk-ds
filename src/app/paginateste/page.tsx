@@ -4,34 +4,6 @@ export default function PaginaTeste() {
   return (
     <div className="min-h-screen bg-white font-sans">
 
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes fadeRight {
-          from { opacity: 0; transform: translateX(32px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        .anim { animation-fill-mode: both; animation-timing-function: cubic-bezier(0.22,1,0.36,1); }
-        .fade-up  { animation-name: fadeUp;    animation-duration: 0.7s; }
-        .fade-in  { animation-name: fadeIn;    animation-duration: 0.6s; }
-        .fade-right { animation-name: fadeRight; animation-duration: 0.8s; }
-        .d0   { animation-delay: 0ms; }
-        .d100 { animation-delay: 100ms; }
-        .d200 { animation-delay: 200ms; }
-        .d300 { animation-delay: 300ms; }
-        .d400 { animation-delay: 400ms; }
-        .d500 { animation-delay: 500ms; }
-        .d600 { animation-delay: 600ms; }
-        .d700 { animation-delay: 700ms; }
-        .d800 { animation-delay: 800ms; }
-      `}</style>
-
       {/* ── Nav ── */}
       <nav className="anim fade-in d0 flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
