@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState, ReactNode } from "react"
 
-/* ── Scroll-aware floating icon ── */
+/* ─────────────────────────────────────────────────
+   FloatIcon
+   • Entra: desliza de cima para baixo (JS transition)
+   • Scroll: vai para baixo + fade out conforme scroll
+   ───────────────────────────────────────────────── */
 function FloatIcon({
   children,
   className = "",
@@ -15,35 +19,73 @@ function FloatIcon({
   delayMs?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [phase, setPhase] = useState<"init" | "in" | "out">("init")
+  const phase = useRef<"hidden" | "entering" | "visible">("hidden")
+  const [{ opacity, y }, setVals] = useState({ opacity: 0, y: -32 })
+  const [easing, setEasing] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
+
+    /* Entrance */
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => setPhase("in"), delayMs)
-        } else {
-          setPhase((p) => (p !== "init" ? "out" : "init"))
+      ([e]) => {
+        if (e.isIntersecting && phase.current === "hidden") {
+          phase.current = "entering"
+          setTimeout(() => {
+            setEasing(true)
+            setVals({ opacity: 1, y: 0 })
+            setTimeout(() => {
+              phase.current = "visible"
+              setEasing(false)
+            }, 750)
+          }, delayMs)
+          obs.disconnect()
         }
       },
       { threshold: 0.15 }
     )
     obs.observe(el)
-    return () => obs.disconnect()
+
+    /* Scroll-driven exit */
+    let raf: number
+    const onScroll = () => {
+      if (phase.current !== "visible") return
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        const vh = window.innerHeight
+        // progress: 0 = element centre at vh×0.65 | 1 = element centre at vh×0.1
+        const centre = rect.top + rect.height / 2
+        const progress = Math.max(
+          0,
+          Math.min(1, (vh * 0.65 - centre) / (vh * 0.55))
+        )
+        setVals({
+          opacity: Math.max(0, 1 - progress * 1.3),
+          y: progress * 72,
+        })
+      })
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      obs.disconnect()
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(raf)
+    }
   }, [delayMs])
 
   return (
     <div
       ref={ref}
-      className={`absolute rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center ${
-        phase === "in" ? "anim fade-down" : ""
-      } ${className}`}
+      className={`absolute rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center ${className}`}
       style={{
-        opacity: phase !== "in" ? 0 : undefined,
-        transition: phase === "out" ? "opacity 0.45s ease" : undefined,
-        animationDelay: phase === "in" ? `${delayMs}ms` : undefined,
+        opacity,
+        transform: `translateY(${y}px)`,
+        transition: easing
+          ? "opacity .75s cubic-bezier(.22,1,.36,1), transform .75s cubic-bezier(.22,1,.36,1)"
+          : "none",
         ...style,
       }}
     >
@@ -52,6 +94,81 @@ function FloatIcon({
   )
 }
 
+/* ─────────────────────────────────────────────────
+   ScrollFade — para o conteúdo de texto
+   • Entra: fade-down CSS animation
+   • Scroll: vai para baixo + fade out
+   ───────────────────────────────────────────────── */
+function ScrollFade({
+  children,
+  className = "",
+  delayClass = "d0",
+}: {
+  children: ReactNode
+  className?: string
+  delayClass?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const active = useRef(false)
+  const [scroll, setScroll] = useState({ opacity: 1 as number | undefined, y: 0 })
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) active.current = true },
+      { threshold: 0.1 }
+    )
+    obs.observe(el)
+
+    let raf: number
+    const onScroll = () => {
+      if (!active.current) return
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        const vh = window.innerHeight
+        const centre = rect.top + rect.height / 2
+        const progress = Math.max(
+          0,
+          Math.min(1, (vh * 0.55 - centre) / (vh * 0.45))
+        )
+        if (progress > 0) {
+          setScroll({ opacity: Math.max(0, 1 - progress * 1.4), y: progress * 56 })
+        } else {
+          setScroll({ opacity: undefined, y: 0 })
+        }
+      })
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      obs.disconnect()
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={`anim fade-down ${delayClass} ${className}`}
+      style={{
+        opacity: scroll.opacity,
+        transform: scroll.y ? `translateY(${scroll.y}px)` : undefined,
+        // override animation fill-mode only when scroll is active
+        ...(scroll.y > 0 ? { animationFillMode: "none" as const } : {}),
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────
+   Page
+   ───────────────────────────────────────────────── */
 export default function HomePage() {
   return (
     <div
@@ -65,10 +182,7 @@ export default function HomePage() {
       {/* ── Nav ── */}
       <nav className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div
-            className="size-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: "#0f172a" }}
-          >
+          <div className="size-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#0f172a" }}>
             <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none">
               <rect x="2" y="2" width="7" height="7" rx="1" fill="white" />
               <rect x="11" y="2" width="7" height="7" rx="1" fill="white" />
@@ -81,10 +195,7 @@ export default function HomePage() {
 
         <div className="hidden md:flex items-center gap-1.5">
           {["Company", "Products", "Services", "Resources", "Industries"].map((item) => (
-            <button
-              key={item}
-              className="flex items-center gap-1 px-3.5 py-1.5 text-sm text-gray-600 rounded-full border border-gray-200 bg-white/70 hover:bg-white hover:shadow-sm transition-all"
-            >
+            <button key={item} className="flex items-center gap-1 px-3.5 py-1.5 text-sm text-gray-600 rounded-full border border-gray-200 bg-white/70 hover:bg-white hover:shadow-sm transition-all">
               {item}
               <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 text-gray-400" fill="none">
                 <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -93,10 +204,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        <button
-          className="px-5 py-2.5 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: "#2563eb" }}
-        >
+        <button className="px-5 py-2.5 text-sm font-semibold text-white rounded-full hover:opacity-90 transition-opacity" style={{ backgroundColor: "#2563eb" }}>
           Get In Touch
         </button>
       </nav>
@@ -105,16 +213,13 @@ export default function HomePage() {
       <section className="relative text-center px-6 pt-6 pb-0 overflow-hidden">
 
         {/* ── LEFT icons ── */}
-
-        {/* Cursor */}
-        <FloatIcon style={{ left: "14%", top: "44px" }} className="size-14" delayMs={0}>
+        <FloatIcon style={{ left: "14%", top: "44px" }}  className="size-14" delayMs={0}>
           <svg viewBox="0 0 100 100" className="w-8 h-8">
             <rect width="100" height="100" rx="22" fill="#000" />
             <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="white" />
           </svg>
         </FloatIcon>
 
-        {/* React */}
         <FloatIcon style={{ left: "10%", top: "178px" }} className="size-12" delayMs={80}>
           <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
             <circle cx="50" cy="50" r="8" fill="#61DAFB" />
@@ -124,7 +229,6 @@ export default function HomePage() {
           </svg>
         </FloatIcon>
 
-        {/* n8n */}
         <FloatIcon style={{ left: "15%", top: "302px" }} className="size-12" delayMs={160}>
           <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
             <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
@@ -135,15 +239,12 @@ export default function HomePage() {
         </FloatIcon>
 
         {/* ── RIGHT icons ── */}
-
-        {/* Vercel */}
-        <FloatIcon style={{ right: "14%", top: "52px" }} className="size-12" delayMs={40}>
+        <FloatIcon style={{ right: "14%", top: "52px" }}  className="size-12" delayMs={40}>
           <svg viewBox="0 0 100 87" className="w-7 h-6">
             <path d="M50 0L100 87H0Z" fill="#000" />
           </svg>
         </FloatIcon>
 
-        {/* Figma */}
         <FloatIcon style={{ right: "10%", top: "178px" }} className="size-14" delayMs={120}>
           <svg viewBox="0 0 38 57" className="w-5 h-8">
             <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
@@ -154,68 +255,57 @@ export default function HomePage() {
           </svg>
         </FloatIcon>
 
-        {/* Supabase */}
         <FloatIcon style={{ right: "15%", top: "298px" }} className="size-12" delayMs={200}>
           <svg viewBox="0 0 100 100" className="w-6 h-6">
             <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
           </svg>
         </FloatIcon>
 
-        {/* Badge */}
-        <div
-          className="anim fade-down d0 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm mb-8"
-          style={{
-            background: "linear-gradient(135deg, #f5f0ff 0%, #eff6ff 100%)",
-            border: "1px solid #c4b5fd",
-            color: "#6d28d9",
-          }}
-        >
-          <span style={{ color: "#8b5cf6" }}>✦</span>
-          Trusted by businesses in finance, healthcare, logistics, retail, and beyond.
-        </div>
-
-        {/* Heading */}
-        <h1
-          className="anim fade-down d100 text-[64px] font-black text-gray-950 tracking-tight leading-[1.08] mb-6 mx-auto"
-          style={{ maxWidth: "640px" }}
-        >
-          Automate,
-          <br />
-          Accelerate &amp;{" "}
-          <span
+        {/* ── Content ── */}
+        <ScrollFade delayClass="d0" className="inline-flex">
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm mb-8"
             style={{
-              color: "#2563eb",
-              background: "rgba(147, 197, 253, 0.35)",
-              borderRadius: "6px",
-              padding: "0 6px 2px",
+              background: "linear-gradient(135deg, #f5f0ff 0%, #eff6ff 100%)",
+              border: "1px solid #c4b5fd",
+              color: "#6d28d9",
             }}
           >
-            Scale
-          </span>
-        </h1>
+            <span style={{ color: "#8b5cf6" }}>✦</span>
+            Trusted by businesses in finance, healthcare, logistics, retail, and beyond.
+          </div>
+        </ScrollFade>
 
-        {/* Body */}
-        <p
-          className="anim fade-down d200 text-gray-500 text-base leading-relaxed mx-auto mb-8"
-          style={{ maxWidth: "420px" }}
-        >
-          Unlock the future of work with AI Agents, Workflow Automation, and Smart Data
-          Architecture. From startups to enterprises, we help businesses cut costs, save time,
-          and grow faster without the tech headaches.
-        </p>
-
-        {/* CTAs */}
-        <div className="anim fade-down d300 flex items-center justify-center gap-3 mb-10">
-          <button
-            className="px-7 py-3 text-white text-sm font-semibold rounded-full hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: "#2563eb" }}
+        <ScrollFade delayClass="d100">
+          <h1
+            className="text-[64px] font-black text-gray-950 tracking-tight leading-[1.08] mb-6 mx-auto"
+            style={{ maxWidth: "640px" }}
           >
+            Automate,
+            <br />
+            Accelerate &amp;{" "}
+            <span style={{ color: "#2563eb", background: "rgba(147,197,253,.35)", borderRadius: "6px", padding: "0 6px 2px" }}>
+              Scale
+            </span>
+          </h1>
+        </ScrollFade>
+
+        <ScrollFade delayClass="d200">
+          <p className="text-gray-500 text-base leading-relaxed mx-auto mb-8" style={{ maxWidth: "420px" }}>
+            Unlock the future of work with AI Agents, Workflow Automation, and Smart Data
+            Architecture. From startups to enterprises, we help businesses cut costs, save time,
+            and grow faster without the tech headaches.
+          </p>
+        </ScrollFade>
+
+        <ScrollFade delayClass="d300" className="flex items-center justify-center gap-3 mb-10">
+          <button className="px-7 py-3 text-white text-sm font-semibold rounded-full hover:opacity-90 transition-opacity" style={{ backgroundColor: "#2563eb" }}>
             Get Started
           </button>
           <button className="px-7 py-3 bg-white text-gray-700 text-sm font-semibold rounded-full border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
             See How It Works
           </button>
-        </div>
+        </ScrollFade>
 
         {/* ── Globe ── */}
         <div className="relative w-full" style={{ height: "360px" }}>
