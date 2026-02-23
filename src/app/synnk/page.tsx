@@ -56,76 +56,47 @@ function FadeIn({
 }
 
 /* ─────────────────────────────────────────────────────────────
-   FloatIcon — ícones flutuantes com parallax + float + scroll
-   • Entrada : desliza de cima (JS transition)
-   • Mouse   : parallax suave via lerp rAF (depth por ícone)
-   • Idle    : CSS floatBob animation com fase própria
-   • Scroll  : desce + fade out
+   FloatIcon — ícones flutuantes
+   • Sempre visíveis (opacity 1)
+   • Scroll : cada ícone se move com velocidade/direção própria
+   • Mouse  : parallax suave via lerp rAF (depth por ícone)
+   • Idle   : floatBob CSS com fase própria por ícone
    ───────────────────────────────────────────────────────────── */
 function FloatIcon({
   children,
   className = "",
   style,
-  delayMs = 0,
   depth = 0.5,
+  scrollFactor = 0.1,
+  bobDelay = 0,
 }: {
   children: ReactNode
   className?: string
   style: React.CSSProperties
-  delayMs?: number
   depth?: number
+  scrollFactor?: number
+  bobDelay?: number
 }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const phase = useRef<"hidden" | "entering" | "visible">("hidden")
-  const [entrance, setEntrance] = useState({ opacity: 0, y: -28 })
-  const [easing, setEasing] = useState(false)
+  const [scrollY, setScrollY]   = useState(0)
   const [floating, setFloating] = useState(false)
   const parallaxRef = useRef({ x: 0, y: 0 })
-  const targetRef  = useRef({ x: 0, y: 0 })
+  const targetRef   = useRef({ x: 0, y: 0 })
   const [parallax, setParallax] = useState({ x: 0, y: 0 })
   const rafScroll = useRef(0)
   const rafMouse  = useRef(0)
 
   useEffect(() => {
-    const el = wrapRef.current
-    if (!el) return
+    /* Float bob começa após montar */
+    const t = setTimeout(() => setFloating(true), 600)
 
-    /* Entrance */
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && phase.current === "hidden") {
-          phase.current = "entering"
-          setTimeout(() => {
-            setEasing(true)
-            setEntrance({ opacity: 1, y: 0 })
-            setTimeout(() => {
-              phase.current = "visible"
-              setEasing(false)
-              setFloating(true)
-            }, 750)
-          }, delayMs)
-          obs.disconnect()
-        }
-      },
-      { threshold: 0.1 }
-    )
-    obs.observe(el)
-
-    /* Scroll exit */
+    /* Scroll: movement */
     const onScroll = () => {
-      if (phase.current !== "visible") return
       cancelAnimationFrame(rafScroll.current)
-      rafScroll.current = requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect()
-        const vh   = window.innerHeight
-        const centre  = rect.top + rect.height / 2
-        const progress = Math.max(0, Math.min(1, (vh * 0.65 - centre) / (vh * 0.55)))
-        setEntrance({ opacity: Math.max(0, 1 - progress * 1.3), y: progress * 72 })
-      })
+      rafScroll.current = requestAnimationFrame(() => setScrollY(window.scrollY))
     }
     window.addEventListener("scroll", onScroll, { passive: true })
 
-    /* Mouse parallax target */
+    /* Mouse parallax */
     const onMouseMove = (e: MouseEvent) => {
       targetRef.current = {
         x: ((e.clientX - window.innerWidth  / 2) / (window.innerWidth  / 2)) * depth * 26,
@@ -148,52 +119,39 @@ function FloatIcon({
     rafMouse.current = requestAnimationFrame(tick)
 
     return () => {
-      obs.disconnect()
+      clearTimeout(t)
       window.removeEventListener("scroll", onScroll)
       window.removeEventListener("mousemove", onMouseMove)
       cancelAnimationFrame(rafScroll.current)
       cancelAnimationFrame(rafMouse.current)
     }
-  }, [delayMs, depth])
+  }, [depth])
 
   return (
-    /* Layer A: parallax X+Y (mouse) */
     <div
-      ref={wrapRef}
       className={`absolute pointer-events-none ${className}`}
-      style={{ ...style, transform: `translate(${parallax.x}px, ${parallax.y}px)` }}
+      style={{
+        ...style,
+        transform: `translate(${parallax.x}px, ${scrollY * scrollFactor + parallax.y}px)`,
+      }}
     >
-      {/* Layer B: entrance opacity + scroll Y */}
       <div
+        className="w-full h-full rounded-full flex items-center justify-center"
         style={{
-          width: "100%",
-          height: "100%",
-          opacity: entrance.opacity,
-          transform: `translateY(${entrance.y}px)`,
-          transition: easing
-            ? "opacity .75s cubic-bezier(.22,1,.36,1), transform .75s cubic-bezier(.22,1,.36,1)"
-            : "none",
+          background: "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.13)",
+          backdropFilter: "blur(10px)",
+          ...(floating ? {
+            animationName: "floatBob",
+            animationDuration: `${2.4 + depth * 1.4}s`,
+            animationTimingFunction: "ease-in-out",
+            animationIterationCount: "infinite",
+            animationDirection: "alternate",
+            animationDelay: `${bobDelay}ms`,
+          } : {}),
         }}
       >
-        {/* Layer C: glass surface + floatBob animation */}
-        <div
-          className="w-full h-full rounded-full flex items-center justify-center"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.13)",
-            backdropFilter: "blur(10px)",
-            ...(floating ? {
-              animationName: "floatBob",
-              animationDuration: `${2.4 + depth * 1.4}s`,
-              animationTimingFunction: "ease-in-out",
-              animationIterationCount: "infinite",
-              animationDirection: "alternate",
-              animationDelay: `${(delayMs * 0.5) % 1400}ms`,
-            } : {}),
-          }}
-        >
-          {children}
-        </div>
+        {children}
       </div>
     </div>
   )
@@ -606,16 +564,16 @@ export default function SynnkPage() {
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#050D1A] to-transparent pointer-events-none" />
 
         {/* ── LEFT icons ── */}
-        <FloatIcon style={{ left: "8%", top: "148px" }} className="size-14" delayMs={60} depth={0.6}>
-          {/* Cursor */}
+        {/* Cursor — desce devagar com scroll */}
+        <FloatIcon style={{ left: "8%", top: "148px" }} className="hidden md:block size-14" depth={0.6} scrollFactor={0.07} bobDelay={0}>
           <svg viewBox="0 0 100 100" className="w-8 h-8">
             <rect width="100" height="100" rx="22" fill="white" fillOpacity="0.9" />
             <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="#050D1A" />
           </svg>
         </FloatIcon>
 
-        <FloatIcon style={{ left: "5%", top: "310px" }} className="size-12" delayMs={140} depth={0.38}>
-          {/* React */}
+        {/* React — sobe com scroll */}
+        <FloatIcon style={{ left: "5%", top: "310px" }} className="hidden md:block size-12" depth={0.38} scrollFactor={-0.13} bobDelay={400}>
           <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
             <circle cx="50" cy="50" r="8" fill="#61DAFB" />
             <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" />
@@ -624,8 +582,8 @@ export default function SynnkPage() {
           </svg>
         </FloatIcon>
 
-        <FloatIcon style={{ left: "10%", top: "460px" }} className="size-12" delayMs={220} depth={0.72}>
-          {/* n8n */}
+        {/* n8n — desce mais rápido */}
+        <FloatIcon style={{ left: "10%", top: "460px" }} className="hidden md:block size-12" depth={0.72} scrollFactor={0.17} bobDelay={800}>
           <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
             <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
             <circle cx="84" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
@@ -635,15 +593,15 @@ export default function SynnkPage() {
         </FloatIcon>
 
         {/* ── RIGHT icons ── */}
-        <FloatIcon style={{ right: "8%", top: "156px" }} className="size-12" delayMs={100} depth={0.5}>
-          {/* Vercel */}
+        {/* Vercel — sobe devagar */}
+        <FloatIcon style={{ right: "8%", top: "156px" }} className="hidden md:block size-12" depth={0.5} scrollFactor={-0.06} bobDelay={200}>
           <svg viewBox="0 0 100 87" className="w-7 h-6">
             <path d="M50 0L100 87H0Z" fill="white" fillOpacity="0.9" />
           </svg>
         </FloatIcon>
 
-        <FloatIcon style={{ right: "5%", top: "316px" }} className="size-14" delayMs={180} depth={0.85}>
-          {/* Figma */}
+        {/* Figma — desce médio */}
+        <FloatIcon style={{ right: "5%", top: "316px" }} className="hidden md:block size-14" depth={0.85} scrollFactor={0.11} bobDelay={600}>
           <svg viewBox="0 0 38 57" className="w-5 h-8">
             <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
             <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83" />
@@ -653,8 +611,8 @@ export default function SynnkPage() {
           </svg>
         </FloatIcon>
 
-        <FloatIcon style={{ right: "10%", top: "468px" }} className="size-12" delayMs={260} depth={0.35}>
-          {/* Supabase */}
+        {/* Supabase — sobe */}
+        <FloatIcon style={{ right: "10%", top: "468px" }} className="hidden md:block size-12" depth={0.35} scrollFactor={-0.09} bobDelay={1000}>
           <svg viewBox="0 0 100 100" className="w-6 h-6">
             <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
           </svg>
