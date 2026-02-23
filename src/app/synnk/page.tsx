@@ -68,6 +68,7 @@ function FloatIcon({
   style,
   depth = 0.5,
   scrollFactor = 0.1,
+  scrollFactorX = 0,
   bobDelay = 0,
 }: {
   children: ReactNode
@@ -75,6 +76,7 @@ function FloatIcon({
   style: React.CSSProperties
   depth?: number
   scrollFactor?: number
+  scrollFactorX?: number
   bobDelay?: number
 }) {
   const [scrollY, setScrollY]   = useState(0)
@@ -132,7 +134,7 @@ function FloatIcon({
       className={`absolute pointer-events-none ${className}`}
       style={{
         ...style,
-        transform: `translate(${parallax.x}px, ${scrollY * scrollFactor + parallax.y}px)`,
+        transform: `translate(${scrollY * scrollFactorX + parallax.x}px, ${scrollY * scrollFactor + parallax.y}px)`,
       }}
     >
       <div
@@ -551,7 +553,7 @@ export default function SynnkPage() {
           ══════════════════════════════════════════════════════ */}
       <section
         id="hero"
-        className="relative min-h-screen bg-[#050D1A] pt-16 flex flex-col overflow-hidden"
+        className="relative min-h-screen bg-[#050D1A] pt-16 flex flex-col"
       >
         {/* Background grid */}
         <div
@@ -564,16 +566,18 @@ export default function SynnkPage() {
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#050D1A] to-transparent pointer-events-none" />
 
         {/* ── LEFT icons ── */}
-        {/* Cursor — desce devagar com scroll */}
-        <FloatIcon style={{ left: "8%", top: "148px" }} className="hidden md:block size-14" depth={0.6} scrollFactor={0.07} bobDelay={0}>
+        {/* Cursor — desce + deriva levemente pra direita */}
+        <FloatIcon style={{ left: "8%", top: "148px" }} className="hidden md:block size-14"
+          depth={0.6} scrollFactor={0.22} scrollFactorX={-0.04} bobDelay={0}>
           <svg viewBox="0 0 100 100" className="w-8 h-8">
             <rect width="100" height="100" rx="22" fill="white" fillOpacity="0.9" />
             <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="#050D1A" />
           </svg>
         </FloatIcon>
 
-        {/* React — sobe com scroll */}
-        <FloatIcon style={{ left: "5%", top: "310px" }} className="hidden md:block size-12" depth={0.38} scrollFactor={-0.13} bobDelay={400}>
+        {/* React — sobe + deriva pra esquerda */}
+        <FloatIcon style={{ left: "5%", top: "310px" }} className="hidden md:block size-12"
+          depth={0.38} scrollFactor={-0.28} scrollFactorX={-0.06} bobDelay={400}>
           <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
             <circle cx="50" cy="50" r="8" fill="#61DAFB" />
             <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" />
@@ -582,8 +586,9 @@ export default function SynnkPage() {
           </svg>
         </FloatIcon>
 
-        {/* n8n — desce mais rápido */}
-        <FloatIcon style={{ left: "10%", top: "460px" }} className="hidden md:block size-12" depth={0.72} scrollFactor={0.17} bobDelay={800}>
+        {/* n8n — desce bastante + deriva pra direita */}
+        <FloatIcon style={{ left: "10%", top: "460px" }} className="hidden md:block size-12"
+          depth={0.72} scrollFactor={0.36} scrollFactorX={0.05} bobDelay={800}>
           <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
             <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
             <circle cx="84" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
@@ -593,15 +598,17 @@ export default function SynnkPage() {
         </FloatIcon>
 
         {/* ── RIGHT icons ── */}
-        {/* Vercel — sobe devagar */}
-        <FloatIcon style={{ right: "8%", top: "156px" }} className="hidden md:block size-12" depth={0.5} scrollFactor={-0.06} bobDelay={200}>
+        {/* Vercel — sobe + deriva pra direita */}
+        <FloatIcon style={{ right: "8%", top: "156px" }} className="hidden md:block size-12"
+          depth={0.5} scrollFactor={-0.18} scrollFactorX={0.07} bobDelay={200}>
           <svg viewBox="0 0 100 87" className="w-7 h-6">
             <path d="M50 0L100 87H0Z" fill="white" fillOpacity="0.9" />
           </svg>
         </FloatIcon>
 
-        {/* Figma — desce médio */}
-        <FloatIcon style={{ right: "5%", top: "316px" }} className="hidden md:block size-14" depth={0.85} scrollFactor={0.11} bobDelay={600}>
+        {/* Figma — desce + deriva pra esquerda */}
+        <FloatIcon style={{ right: "5%", top: "316px" }} className="hidden md:block size-14"
+          depth={0.85} scrollFactor={0.26} scrollFactorX={-0.05} bobDelay={600}>
           <svg viewBox="0 0 38 57" className="w-5 h-8">
             <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
             <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83" />
@@ -611,8 +618,9 @@ export default function SynnkPage() {
           </svg>
         </FloatIcon>
 
-        {/* Supabase — sobe */}
-        <FloatIcon style={{ right: "10%", top: "468px" }} className="hidden md:block size-12" depth={0.35} scrollFactor={-0.09} bobDelay={1000}>
+        {/* Supabase — sobe + deriva pra direita */}
+        <FloatIcon style={{ right: "10%", top: "468px" }} className="hidden md:block size-12"
+          depth={0.35} scrollFactor={-0.22} scrollFactorX={0.04} bobDelay={1000}>
           <svg viewBox="0 0 100 100" className="w-6 h-6">
             <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
           </svg>
