@@ -56,6 +56,150 @@ function FadeIn({
 }
 
 /* ─────────────────────────────────────────────────────────────
+   FloatIcon — ícones flutuantes com parallax + float + scroll
+   • Entrada : desliza de cima (JS transition)
+   • Mouse   : parallax suave via lerp rAF (depth por ícone)
+   • Idle    : CSS floatBob animation com fase própria
+   • Scroll  : desce + fade out
+   ───────────────────────────────────────────────────────────── */
+function FloatIcon({
+  children,
+  className = "",
+  style,
+  delayMs = 0,
+  depth = 0.5,
+}: {
+  children: ReactNode
+  className?: string
+  style: React.CSSProperties
+  delayMs?: number
+  depth?: number
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const phase = useRef<"hidden" | "entering" | "visible">("hidden")
+  const [entrance, setEntrance] = useState({ opacity: 0, y: -28 })
+  const [easing, setEasing] = useState(false)
+  const [floating, setFloating] = useState(false)
+  const parallaxRef = useRef({ x: 0, y: 0 })
+  const targetRef  = useRef({ x: 0, y: 0 })
+  const [parallax, setParallax] = useState({ x: 0, y: 0 })
+  const rafScroll = useRef(0)
+  const rafMouse  = useRef(0)
+
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+
+    /* Entrance */
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && phase.current === "hidden") {
+          phase.current = "entering"
+          setTimeout(() => {
+            setEasing(true)
+            setEntrance({ opacity: 1, y: 0 })
+            setTimeout(() => {
+              phase.current = "visible"
+              setEasing(false)
+              setFloating(true)
+            }, 750)
+          }, delayMs)
+          obs.disconnect()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    obs.observe(el)
+
+    /* Scroll exit */
+    const onScroll = () => {
+      if (phase.current !== "visible") return
+      cancelAnimationFrame(rafScroll.current)
+      rafScroll.current = requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        const vh   = window.innerHeight
+        const centre  = rect.top + rect.height / 2
+        const progress = Math.max(0, Math.min(1, (vh * 0.65 - centre) / (vh * 0.55)))
+        setEntrance({ opacity: Math.max(0, 1 - progress * 1.3), y: progress * 72 })
+      })
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    /* Mouse parallax target */
+    const onMouseMove = (e: MouseEvent) => {
+      targetRef.current = {
+        x: ((e.clientX - window.innerWidth  / 2) / (window.innerWidth  / 2)) * depth * 26,
+        y: ((e.clientY - window.innerHeight * 0.4) / (window.innerHeight / 2)) * depth * 18,
+      }
+    }
+    window.addEventListener("mousemove", onMouseMove, { passive: true })
+
+    /* Lerp rAF loop */
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    const tick = () => {
+      const nx = lerp(parallaxRef.current.x, targetRef.current.x, 0.055)
+      const ny = lerp(parallaxRef.current.y, targetRef.current.y, 0.055)
+      if (Math.abs(nx - parallaxRef.current.x) > 0.01 || Math.abs(ny - parallaxRef.current.y) > 0.01) {
+        parallaxRef.current = { x: nx, y: ny }
+        setParallax({ x: nx, y: ny })
+      }
+      rafMouse.current = requestAnimationFrame(tick)
+    }
+    rafMouse.current = requestAnimationFrame(tick)
+
+    return () => {
+      obs.disconnect()
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("mousemove", onMouseMove)
+      cancelAnimationFrame(rafScroll.current)
+      cancelAnimationFrame(rafMouse.current)
+    }
+  }, [delayMs, depth])
+
+  return (
+    /* Layer A: parallax X+Y (mouse) */
+    <div
+      ref={wrapRef}
+      className={`absolute pointer-events-none ${className}`}
+      style={{ ...style, transform: `translate(${parallax.x}px, ${parallax.y}px)` }}
+    >
+      {/* Layer B: entrance opacity + scroll Y */}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          opacity: entrance.opacity,
+          transform: `translateY(${entrance.y}px)`,
+          transition: easing
+            ? "opacity .75s cubic-bezier(.22,1,.36,1), transform .75s cubic-bezier(.22,1,.36,1)"
+            : "none",
+        }}
+      >
+        {/* Layer C: glass surface + floatBob animation */}
+        <div
+          className="w-full h-full rounded-full flex items-center justify-center"
+          style={{
+            background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.13)",
+            backdropFilter: "blur(10px)",
+            ...(floating ? {
+              animationName: "floatBob",
+              animationDuration: `${2.4 + depth * 1.4}s`,
+              animationTimingFunction: "ease-in-out",
+              animationIterationCount: "infinite",
+              animationDirection: "alternate",
+              animationDelay: `${(delayMs * 0.5) % 1400}ms`,
+            } : {}),
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
    Logo
    ───────────────────────────────────────────────────────────── */
 function Logo({ size = "text-xl", invert = false }: { size?: string; invert?: boolean }) {
@@ -460,6 +604,61 @@ export default function SynnkPage() {
           }}
         />
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#050D1A] to-transparent pointer-events-none" />
+
+        {/* ── LEFT icons ── */}
+        <FloatIcon style={{ left: "8%", top: "148px" }} className="size-14" delayMs={60} depth={0.6}>
+          {/* Cursor */}
+          <svg viewBox="0 0 100 100" className="w-8 h-8">
+            <rect width="100" height="100" rx="22" fill="white" fillOpacity="0.9" />
+            <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="#050D1A" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ left: "5%", top: "310px" }} className="size-12" delayMs={140} depth={0.38}>
+          {/* React */}
+          <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
+            <circle cx="50" cy="50" r="8" fill="#61DAFB" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(60 50 50)" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(120 50 50)" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ left: "10%", top: "460px" }} className="size-12" delayMs={220} depth={0.72}>
+          {/* n8n */}
+          <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
+            <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="84" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <line x1="29" y1="30" x2="71" y2="30" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="50" cy="30" r="8" fill="#FF6D5A" />
+          </svg>
+        </FloatIcon>
+
+        {/* ── RIGHT icons ── */}
+        <FloatIcon style={{ right: "8%", top: "156px" }} className="size-12" delayMs={100} depth={0.5}>
+          {/* Vercel */}
+          <svg viewBox="0 0 100 87" className="w-7 h-6">
+            <path d="M50 0L100 87H0Z" fill="white" fillOpacity="0.9" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ right: "5%", top: "316px" }} className="size-14" delayMs={180} depth={0.85}>
+          {/* Figma */}
+          <svg viewBox="0 0 38 57" className="w-5 h-8">
+            <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
+            <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83" />
+            <path d="M19 0v19h9.5a9.5 9.5 0 0 0 0-19H19z" fill="#FF7262" />
+            <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#F24E1E" />
+            <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#A259FF" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ right: "10%", top: "468px" }} className="size-12" delayMs={260} depth={0.35}>
+          {/* Supabase */}
+          <svg viewBox="0 0 100 100" className="w-6 h-6">
+            <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
+          </svg>
+        </FloatIcon>
 
         <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-12 flex-1 flex flex-col">
           {/* Badge */}

@@ -54,6 +54,11 @@
 .fade-right { animation-name: fadeRight; animation-duration: 0.8s; }
 .fade-left  { animation-name: fadeLeft;  animation-duration: 0.8s; }
 
+@keyframes floatBob {
+  from { transform: translateY(0px); }
+  to   { transform: translateY(-10px); }
+}
+
 /* ── Delays ── */
 
 .d0   { animation-delay: 0ms;   }
