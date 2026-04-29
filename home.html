@@ -520,9 +520,14 @@ nav.glass{
 
   /* Título */
   #title {
-    font-size: clamp(28px, 8.5vw, 44px) !important;
+    font-size: clamp(52px, 14vw, 72px) !important;
     white-space: normal;
-    line-height: 1.05;
+    line-height: 1.0;
+  }
+
+  /* Hero sem imagem: text-block ocupa altura total */
+  #text-block.no-img {
+    bottom: 24px;
   }
 
   /* Descrição */
@@ -591,7 +596,8 @@ nav.glass{
 @media (max-width: 480px) {
   nav { padding: 12px 16px; }
   #text-block { bottom: 42vh; padding: 52px 20px 16px; }
-  #title { font-size: clamp(26px, 8vw, 38px) !important; }
+  #text-block.no-img { bottom: 20px; }
+  #title { font-size: clamp(48px, 13vw, 66px) !important; }
   #mobile-img { height: 42vh; }
   .pcard { padding: 24px 20px 20px; }
   #pricing-section { padding: 28px 16px 20px; }
@@ -1200,12 +1206,17 @@ function applyText(s){
   dotGridEl.style.opacity = s.isHero ? '1' : '0'
 
   // Mobile image strip — opacity controlada pelas animações GSAP
+  const textBlockEl = document.getElementById('text-block')
   if(s.isHero){
-    mobileImgEl.innerHTML = HERO_SVG
+    mobileImgEl.style.display = 'none'
+    mobileImgEl.innerHTML = ''
     mobileImgEl.style.backgroundImage = 'none'
     mobileImgEl.style.cursor = 'default'
     mobileImgEl.onclick = null
+    textBlockEl.classList.add('no-img')
   } else if(s.img){
+    mobileImgEl.style.display = ''
+    textBlockEl.classList.remove('no-img')
     mobileImgEl.innerHTML = ''
     mobileImgEl.style.backgroundImage = `url(${s.img})`
     if(s.siteUrl){
@@ -1220,6 +1231,8 @@ function applyText(s){
       mobileImgEl.onclick = null
     }
   } else {
+    mobileImgEl.style.display = ''
+    textBlockEl.classList.remove('no-img')
     mobileImgEl.innerHTML = ''
     mobileImgEl.style.backgroundImage = 'none'
     mobileImgEl.style.cursor = 'default'
