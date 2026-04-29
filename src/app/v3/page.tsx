@@ -1236,7 +1236,7 @@ export default function SynnkV3() {
                   <text
                     className={`v3-map-label${isLast ? ' last' : ''}`}
                     x={tx} y={cy + dy}
-                    textAnchor={anchor}
+                    textAnchor={anchor as "end" | "start" | "middle" | "inherit"}
                   >{label}</text>
                 </g>
               )
