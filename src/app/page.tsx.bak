@@ -1,0 +1,708 @@
+"use client"
+
+import { useState, useEffect, useLayoutEffect, useRef, ReactNode } from "react"
+import { CheckCircle2 } from "lucide-react"
+
+/* ─────────────────────────────────────────────────────────────
+   FloatIcon
+   ───────────────────────────────────────────────────────────── */
+function FloatIcon({
+  children,
+  className = "",
+  style,
+  depth = 0.5,
+  scrollFactor = 0.1,
+  scrollFactorX = 0,
+  bobDelay = 0,
+}: {
+  children: ReactNode
+  className?: string
+  style: React.CSSProperties
+  depth?: number
+  scrollFactor?: number
+  scrollFactorX?: number
+  bobDelay?: number
+}) {
+  const [scrollY, setScrollY]   = useState(0)
+  const [floating, setFloating] = useState(false)
+  const parallaxRef = useRef({ x: 0, y: 0 })
+  const targetRef   = useRef({ x: 0, y: 0 })
+  const [parallax, setParallax] = useState({ x: 0, y: 0 })
+  const rafScroll = useRef(0)
+  const rafMouse  = useRef(0)
+
+  useEffect(() => {
+    const t = setTimeout(() => setFloating(true), 600)
+
+    const onScroll = () => {
+      cancelAnimationFrame(rafScroll.current)
+      rafScroll.current = requestAnimationFrame(() => setScrollY(window.scrollY))
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    const onMouseMove = (e: MouseEvent) => {
+      targetRef.current = {
+        x: ((e.clientX - window.innerWidth  / 2) / (window.innerWidth  / 2)) * depth * 26,
+        y: ((e.clientY - window.innerHeight * 0.4) / (window.innerHeight / 2)) * depth * 18,
+      }
+    }
+    window.addEventListener("mousemove", onMouseMove, { passive: true })
+
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    const tick = () => {
+      const nx = lerp(parallaxRef.current.x, targetRef.current.x, 0.055)
+      const ny = lerp(parallaxRef.current.y, targetRef.current.y, 0.055)
+      if (Math.abs(nx - parallaxRef.current.x) > 0.01 || Math.abs(ny - parallaxRef.current.y) > 0.01) {
+        parallaxRef.current = { x: nx, y: ny }
+        setParallax({ x: nx, y: ny })
+      }
+      rafMouse.current = requestAnimationFrame(tick)
+    }
+    rafMouse.current = requestAnimationFrame(tick)
+
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("mousemove", onMouseMove)
+      cancelAnimationFrame(rafScroll.current)
+      cancelAnimationFrame(rafMouse.current)
+    }
+  }, [depth])
+
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        ...style,
+        transform: `translate(${scrollY * scrollFactorX + parallax.x}px, ${scrollY * scrollFactor + parallax.y}px)`,
+      }}
+    >
+      <div
+        className="w-full h-full rounded-full flex items-center justify-center"
+        style={{
+          background: "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.13)",
+          backdropFilter: "blur(10px)",
+          ...(floating ? {
+            animationName: "floatBob",
+            animationDuration: `${2.4 + depth * 1.4}s`,
+            animationTimingFunction: "ease-in-out",
+            animationIterationCount: "infinite",
+            animationDirection: "alternate",
+            animationDelay: `${bobDelay}ms`,
+          } : {}),
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FadeUp
+   ───────────────────────────────────────────────────────────── */
+function FadeUp({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0, rootMargin: "0px 0px -40px 0px" }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity .45s cubic-bezier(.16,1,.3,1) ${delay}ms, transform .45s cubic-bezier(.16,1,.3,1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Logo
+   ───────────────────────────────────────────────────────────── */
+function Logo({ height = 36 }: { size?: string; height?: number }) {
+  return (
+    <img src="/logo-synnk.png" alt="SYNNK" height={height} style={{ height, width: "auto" }} />
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Data
+   ───────────────────────────────────────────────────────────── */
+const HERO_SUBS = [
+  "Soluções web feitas para converter. Cada projeto construído por etapas. Você acompanha, aprova e recebe exatamente o que viu.",
+  "Performance otimizada, responsivo em qualquer dispositivo e pronto para o Google te encontrar.",
+]
+
+const PROJECTS = [
+  { slug: "droneiros",   category: "Plataforma Web",    title: "Droneiros Voluntários", bg: "#040F1C", accent: "#FFE600", thumb: "/droneiros/bgdroneiro2.jpg" },
+  { slug: "imobiliaria", category: "Plataforma Web",    title: "Horizonte Imóveis",     bg: "#0A0514", accent: "#FFE600", thumb: "/droneiros/imobiliariabg.jpg" },
+  { slug: "dentista",    category: "Landing Page",      title: "SorrisoJá",             bg: "#030B1A", accent: "#FFE600", thumb: "/droneiros/sorrisobg.png" },
+  { slug: "veterinario", category: "Landing Page",      title: "PataVida",              bg: "#020D06", accent: "#22C55E", thumb: "/droneiros/bgvet.jpg" },
+  { slug: "psicologa",   category: "Landing Page",      title: "Camila Magalhães",      bg: "#0D1520", accent: "#E7D3B1", thumb: "/droneiros/bgpsicologa.png" },
+  { slug: "doutores",    category: "Site Institucional", title: "Doutores da Alegria",  bg: "#0A0208", accent: "#FF61B5", thumb: "/droneiros/bghomedoutores.png" },
+  { slug: "moms",        category: "Landing Page",      title: "MOMS Cupons",           bg: "#1C1C2E", accent: "#FF6600", thumb: "/droneiros/momsbg.png" },
+]
+
+/* ─────────────────────────────────────────────────────────────
+   Project mockups
+   ───────────────────────────────────────────────────────────── */
+function DroneMockup({ accent }: { accent: string }) {
+  return (
+    <div className="w-full h-full p-3 flex flex-col gap-2">
+      <div className="flex justify-between text-[8px] text-white/25 font-mono">
+        <span>09:41</span><span>●●●</span>
+      </div>
+      <div className="flex-1 rounded-lg relative overflow-hidden" style={{ background: "#071828" }}>
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <pattern id="dronegrid" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M 14 0 L 0 0 0 14" fill="none" stroke={accent} strokeWidth="0.25" opacity="0.15" />
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#dronegrid)" />
+          <path d="M12 72 Q30 38 52 52 T88 22" fill="none" stroke={accent} strokeWidth="1.3" opacity="0.8" strokeDasharray="4,3" />
+          <circle cx="12" cy="72" r="3.5" fill={accent} opacity="0.9" />
+          <circle cx="88" cy="22" r="3" fill="#ff4455" opacity="0.9" />
+          <circle cx="52" cy="52" r="2" fill={accent} opacity="0.5" />
+        </svg>
+      </div>
+      <div className="space-y-1">
+        {[["● MISSÃO ATIVA", accent], ["○ EM STANDBY", "#ffffff30"]].map(([t, c]) => (
+          <div key={t as string} className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1">
+            <span style={{ color: c as string }} className="text-[8px] font-mono tracking-wider">{t as string}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DSMockup({ accent }: { accent: string }) {
+  return (
+    <div className="w-full h-full p-3 flex flex-col gap-2">
+      <p className="text-[7px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: accent + "99" }}>
+        Component Library
+      </p>
+      <div className="grid grid-cols-4 gap-1 flex-1">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded aspect-square flex items-center justify-center"
+            style={{
+              background: i % 3 === 0 ? accent + "20" : "rgba(255,255,255,0.04)",
+              border: `1px solid ${i % 3 === 0 ? accent + "50" : "rgba(255,255,255,0.06)"}`,
+            }}
+          >
+            {i % 4 === 0 && (
+              <div className="w-3/5 h-0.5 rounded-full" style={{ background: accent, opacity: 0.7 }} />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="rounded bg-white/5 px-2 py-1.5 flex items-center gap-2">
+        <div className="size-2.5 rounded-sm shrink-0" style={{ background: accent }} />
+        <span className="text-[7px] font-mono text-white/40">Button / Primary / Default</span>
+      </div>
+    </div>
+  )
+}
+
+function VetMockup({ accent }: { accent: string }) {
+  const services = ["Consulta Clínica", "Vacinação", "Emergência 24h", "Cirurgia"]
+  return (
+    <div className="w-full h-full p-3 flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
+              fill={accent} opacity="0.9" />
+            <ellipse cx="9" cy="5" rx="2.5" ry="3" fill={accent} opacity="0.6" />
+            <ellipse cx="15" cy="5" rx="2.5" ry="3" fill={accent} opacity="0.6" />
+            <ellipse cx="5" cy="10" rx="2.5" ry="3" fill={accent} opacity="0.45" transform="rotate(-20 5 10)" />
+            <ellipse cx="19" cy="10" rx="2.5" ry="3" fill={accent} opacity="0.45" transform="rotate(20 19 10)" />
+          </svg>
+          <span className="text-[8px] font-black text-white/80 tracking-wider uppercase">PataVida</span>
+        </div>
+        <div className="text-[7px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: accent + "25", color: accent }}>
+          24h
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col gap-1 overflow-hidden">
+        {services.map((s, i) => (
+          <div key={s} className="flex items-center gap-1.5 px-2 py-1 rounded" style={{ background: i === 2 ? accent + "18" : "rgba(255,255,255,0.04)", border: `1px solid ${i === 2 ? accent + "40" : "rgba(255,255,255,0.06)"}` }}>
+            <div className="size-1.5 rounded-full shrink-0" style={{ background: i === 2 ? accent : "rgba(255,255,255,0.2)" }} />
+            <span className="text-[7px] text-white/70 font-medium">{s}</span>
+          </div>
+        ))}
+      </div>
+      <div className="rounded px-2 py-1 text-center text-[8px] font-semibold text-white/80"
+        style={{ background: accent + "25", border: `1px solid ${accent}50` }}>
+        Agendar consulta →
+      </div>
+    </div>
+  )
+}
+
+function PsicMockup({ accent }: { accent: string }) {
+  return (
+    <div className="w-full h-full p-4 flex flex-col gap-2.5" style={{ background: "linear-gradient(135deg, #0D1520 0%, #162030 100%)" }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="size-5 rounded-full flex items-center justify-center" style={{ background: accent + "33", border: `1px solid ${accent}66` }}>
+            <span style={{ fontSize: 7, color: accent, fontWeight: 700 }}>CM</span>
+          </div>
+          <span className="text-[8px] font-semibold tracking-wider" style={{ color: accent }}>Camila Magalhães</span>
+        </div>
+        <span className="text-[7px]" style={{ color: accent + "88" }}>Psicóloga Clínica</span>
+      </div>
+      <div className="flex-1 rounded-lg flex flex-col justify-center gap-2 px-2">
+        <div className="h-1.5 rounded-full w-3/4" style={{ background: accent + "55" }} />
+        <div className="h-1 rounded-full w-1/2" style={{ background: accent + "33" }} />
+        <div className="h-1 rounded-full w-2/3" style={{ background: accent + "22" }} />
+        <div className="mt-2 inline-flex">
+          <div className="rounded-full px-2 py-0.5 text-[6px] font-semibold" style={{ background: accent + "22", color: accent, border: `1px solid ${accent}44` }}>
+            Agendar sessão
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {["TCC", "Ansiedade", "Autoestima"].map(s => (
+          <span key={s} className="text-[6px] px-1.5 py-0.5 rounded-full" style={{ background: accent + "15", color: accent + "cc", border: `1px solid ${accent}30` }}>
+            {s}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DoutoresMockup() {
+  const tags   = ["Saúde", "Arte", "ONG"]
+  const colors = ["#FF61B5", "#FFFF01", "#5FF065"]
+  return (
+    <div className="w-full h-full p-3 flex flex-col gap-2" style={{ background: "linear-gradient(135deg,#0A0208 0%,#1A0514 100%)" }}>
+      <div className="flex items-center justify-between">
+        <span className="text-[8px] font-black tracking-wider uppercase" style={{ color: "#FF61B5" }}>Doutores da Alegria</span>
+        <div className="flex gap-1">
+          {colors.map((c, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: c }} />)}
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col justify-center gap-2 px-1">
+        <div className="h-2 rounded w-3/4" style={{ background: "rgba(255,97,181,.35)" }} />
+        <div className="h-1.5 rounded w-full" style={{ background: "rgba(255,255,255,.1)" }} />
+        <div className="h-1.5 rounded w-5/6" style={{ background: "rgba(255,255,255,.07)" }} />
+        <div className="h-1.5 rounded w-2/3" style={{ background: "rgba(255,255,255,.05)" }} />
+      </div>
+      <div className="flex gap-1 flex-wrap">
+        {tags.map((t, i) => (
+          <span key={t} className="text-[7px] px-1.5 py-0.5 rounded-full font-semibold"
+            style={{ background: colors[i] + "22", color: colors[i], border: `1px solid ${colors[i]}44` }}>
+            {t}
+          </span>
+        ))}
+      </div>
+      <div className="rounded px-2 py-1 text-center text-[8px] font-semibold"
+        style={{ background: "rgba(255,97,181,.18)", color: "#FF61B5", border: "1px solid rgba(255,97,181,.35)" }}>
+        Fazer uma doação →
+      </div>
+    </div>
+  )
+}
+
+function MomsMockup() {
+  const coupons = ["MOMS15", "DESCONTO20", "FRETE0"]
+  return (
+    <div className="w-full h-full p-3 flex flex-col gap-2" style={{ background: "linear-gradient(135deg,#1C1C2E 0%,#0E0E1E 100%)" }}>
+      <div className="flex items-center justify-between">
+        <span className="text-[8px] font-black tracking-wider uppercase" style={{ color: "#FF6600" }}>MOMS Cupons</span>
+        <span className="text-[7px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "rgba(255,102,0,.2)", color: "#FF6600" }}>50+ lojas</span>
+      </div>
+      <div className="flex-1 flex flex-col gap-1.5 overflow-hidden">
+        {coupons.map((c, i) => (
+          <div key={c} className="flex items-center justify-between px-2 py-1.5 rounded"
+            style={{ background: i === 0 ? "rgba(255,102,0,.14)" : "rgba(255,255,255,.04)", border: `1px solid ${i === 0 ? "rgba(255,102,0,.3)" : "rgba(255,255,255,.06)"}` }}>
+            <span className="text-[7px] font-mono font-bold" style={{ color: i === 0 ? "#FF6600" : "rgba(255,255,255,.4)" }}>{c}</span>
+            <span className="text-[6px] px-1.5 py-0.5 rounded font-semibold"
+              style={{ background: i === 0 ? "#FF6600" : "rgba(255,255,255,.08)", color: i === 0 ? "#fff" : "rgba(255,255,255,.4)" }}>
+              {i === 0 ? "COPIAR" : "usar"}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="rounded px-2 py-1 text-center text-[8px] font-semibold"
+        style={{ background: "rgba(255,102,0,.18)", color: "#FF6600", border: "1px solid rgba(255,102,0,.3)" }}>
+        Ver todos os cupons →
+      </div>
+    </div>
+  )
+}
+
+function getProjectMockup(project: typeof PROJECTS[0]) {
+  if (project.slug === "droneiros")   return <DroneMockup accent={project.accent} />
+  if (project.slug === "imobiliaria") return <DSMockup accent={project.accent} />
+  if (project.slug === "veterinario") return <VetMockup accent={project.accent} />
+  if (project.slug === "psicologa")   return <PsicMockup accent={project.accent} />
+  if (project.slug === "doutores")    return <DoutoresMockup />
+  if (project.slug === "moms")        return <MomsMockup />
+  return null
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Project Carousel
+   ───────────────────────────────────────────────────────────── */
+function ProjectCarousel() {
+  const GAP    = 16
+  const [visCount, setVisCount] = useState(3)
+  const VIS    = visCount
+  const N      = PROJECTS.length
+  const PRE    = VIS
+  const ITEMS  = [...PROJECTS.slice(-PRE), ...PROJECTS, ...PROJECTS.slice(0, PRE)]
+
+  const [cur, setCur]       = useState(PRE)
+  const [anim, setAnim]     = useState(true)
+  const containerRef        = useRef<HTMLDivElement>(null)
+  const [slideW, setSlideW] = useState(0)
+  const busy                = useRef(false)
+
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const measure = () => {
+      const w = el.offsetWidth
+      const vis = w < 500 ? 1 : 3
+      setVisCount(vis)
+      setSlideW((w - GAP * (vis - 1)) / vis + GAP)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
+    setAnim(false)
+    setCur(visCount)
+  }, [visCount])
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (!busy.current) setCur(c => c + 1)
+    }, 3500)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => {
+    if (cur < PRE + N) return
+    busy.current = true
+    const t = setTimeout(() => {
+      setAnim(false)
+      setCur(c => c - N)
+    }, 700)
+    return () => clearTimeout(t)
+  }, [cur])
+
+  useEffect(() => {
+    if (cur >= PRE) return
+    busy.current = true
+    const t = setTimeout(() => {
+      setAnim(false)
+      setCur(c => c + N)
+    }, 700)
+    return () => clearTimeout(t)
+  }, [cur])
+
+  useEffect(() => {
+    if (anim) return
+    const id = requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        setAnim(true)
+        busy.current = false
+      })
+    )
+    return () => cancelAnimationFrame(id)
+  }, [anim])
+
+  const activeDot = ((cur - PRE) % N + N) % N
+  const cardBasis = `calc((100% - ${GAP * (VIS - 1)}px) / ${VIS})`
+
+  const prev = () => { if (busy.current) return; setAnim(true); setCur(c => c - 1) }
+  const next = () => { if (busy.current) return; setAnim(true); setCur(c => c + 1) }
+
+  return (
+    <div className="relative w-full">
+      <button onClick={prev} className="btn-carousel-prev z-10 flex items-center justify-center transition-all hover:scale-110"
+        style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", cursor: "pointer" }}
+        aria-label="Anterior">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <button onClick={next} className="btn-carousel-next z-10 flex items-center justify-center transition-all hover:scale-110"
+        style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", cursor: "pointer" }}
+        aria-label="Próximo">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M5 2L10 7L5 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <div ref={containerRef} className="overflow-hidden">
+        <div
+          className="flex"
+          style={{
+            gap: GAP,
+            transform: `translateX(-${cur * slideW}px)`,
+            transition: anim ? "transform 0.65s cubic-bezier(.76,0,.24,1)" : "none",
+          }}
+        >
+          {ITEMS.map((p, idx) => (
+            <a
+              key={idx}
+              href={`/portfolio/${p.slug}`}
+              className="shrink-0 rounded-2xl overflow-hidden relative group"
+              style={{ flexBasis: cardBasis, aspectRatio: "4/3", background: p.bg, minWidth: 0 }}
+            >
+              {p.thumb ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.thumb} alt={p.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+              ) : (
+                <div className="absolute inset-0 p-2">
+                  {getProjectMockup(p)}
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-3 pb-3 pt-10">
+                <p className="text-[9px] uppercase tracking-widest font-semibold mb-0.5" style={{ color: "#FFE600" }}>
+                  {p.category.split("·")[0].trim()}
+                </p>
+                <p className="text-white text-xs font-bold">{p.title}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-2 mt-4">
+        {PROJECTS.map((_, i) => (
+          <button key={i} onClick={() => { setAnim(true); setCur(PRE + i) }}
+            style={{
+              width: activeDot === i ? 20 : 5, height: 5, borderRadius: 999,
+              border: "none", cursor: "pointer", padding: 0,
+              backgroundColor: activeDot === i ? "#FFE600" : "rgba(255,255,255,0.25)",
+              transition: "all 0.3s ease",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Page
+   ───────────────────────────────────────────────────────────── */
+export default function Home() {
+  const [subIdx, setSubIdx]       = useState(0)
+  const [subVisible, setSubVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSubVisible(false)
+      setTimeout(() => {
+        setSubIdx(i => (i + 1) % HERO_SUBS.length)
+        setSubVisible(true)
+      }, 500)
+    }, 4500)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="font-sans antialiased">
+      <style>{`
+        @keyframes floatBob {
+          from { transform: translateY(0px); }
+          to   { transform: translateY(-10px); }
+        }
+        .btn-carousel-prev { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); }
+        .btn-carousel-next { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); }
+        @media (min-width: 640px) {
+          .btn-carousel-prev { left: 0; transform: translate(-50%, -60%); }
+          .btn-carousel-next { right: 0; transform: translate(50%, -60%); }
+        }
+      `}</style>
+
+      <section id="hero" className="relative min-h-screen bg-[#050D1A] flex flex-col">
+        {/* Background grid */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#050D1A] to-transparent pointer-events-none" />
+
+        {/* ── LEFT icons ── */}
+        <FloatIcon style={{ left: "8%", top: "148px" }} className="hidden md:block size-14" depth={0.6} scrollFactor={0.14} bobDelay={0}>
+          <svg viewBox="0 0 100 100" className="w-8 h-8">
+            <rect width="100" height="100" rx="22" fill="white" fillOpacity="0.9" />
+            <path d="M32 22L32 78L50 60L61 82L70 78L59 56L78 56Z" fill="#050D1A" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ left: "5%", top: "310px" }} className="hidden md:block size-12" depth={0.38} scrollFactor={0.24} bobDelay={400}>
+          <svg viewBox="0 0 100 100" className="w-7 h-7" fill="none">
+            <circle cx="50" cy="50" r="8" fill="#61DAFB" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(60 50 50)" />
+            <ellipse cx="50" cy="50" rx="46" ry="17" stroke="#61DAFB" strokeWidth="3.5" transform="rotate(120 50 50)" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ left: "10%", top: "460px" }} className="hidden md:block size-12" depth={0.72} scrollFactor={0.34} bobDelay={800}>
+          <svg viewBox="0 0 100 60" className="w-8 h-5" fill="none">
+            <circle cx="16" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="84" cy="30" r="13" stroke="#FF6D5A" strokeWidth="5" />
+            <line x1="29" y1="30" x2="71" y2="30" stroke="#FF6D5A" strokeWidth="5" />
+            <circle cx="50" cy="30" r="8" fill="#FF6D5A" />
+          </svg>
+        </FloatIcon>
+
+        {/* ── RIGHT icons ── */}
+        <FloatIcon style={{ right: "8%", top: "156px" }} className="hidden md:block size-12" depth={0.5} scrollFactor={0.18} bobDelay={200}>
+          <svg viewBox="0 0 100 87" className="w-7 h-6">
+            <path d="M50 0L100 87H0Z" fill="white" fillOpacity="0.9" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ right: "5%", top: "316px" }} className="hidden md:block size-14" depth={0.85} scrollFactor={0.28} bobDelay={600}>
+          <svg viewBox="0 0 38 57" className="w-5 h-8">
+            <path d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" fill="#1ABCFE" />
+            <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 0 1-19 0z" fill="#0ACF83" />
+            <path d="M19 0v19h9.5a9.5 9.5 0 0 0 0-19H19z" fill="#FF7262" />
+            <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#F24E1E" />
+            <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#A259FF" />
+          </svg>
+        </FloatIcon>
+
+        <FloatIcon style={{ right: "10%", top: "468px" }} className="hidden md:block size-12" depth={0.35} scrollFactor={0.20} bobDelay={1000}>
+          <svg viewBox="0 0 100 100" className="w-6 h-6">
+            <path d="M62 6L18 54H44L37 94 82 42H56Z" fill="#3ECF8E" />
+          </svg>
+        </FloatIcon>
+
+        <div className="relative max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 flex-1 flex flex-col">
+          {/* Navbar */}
+          <FadeUp className="flex items-center justify-center mb-8 md:mb-16">
+            <Logo size="text-xl" />
+          </FadeUp>
+
+          {/* Badge */}
+          <FadeUp className="self-center mb-6 md:mb-10" delay={120}>
+            <div className="inline-flex items-center gap-2 sm:gap-2.5 rounded-full px-4 sm:px-5 py-2 sm:py-2.5 font-medium text-sm sm:text-base text-center"
+              style={{ border: "1px solid rgba(79,142,247,.45)", background: "linear-gradient(135deg, rgba(30,80,200,.25) 0%, rgba(79,142,247,.12) 100%)", color: "#4F8EF7" }}>
+              <span className="size-1.5 rounded-full animate-pulse inline-block" style={{ backgroundColor: "#4F8EF7" }} />
+              Transformando ideias em presença digital há mais de 7 anos
+            </div>
+          </FadeUp>
+
+          {/* Headline */}
+          <FadeUp className="text-center mb-4 md:mb-8 max-w-4xl mx-auto" delay={260}>
+            <h1 className="text-[36px] sm:text-5xl md:text-[72px] font-black text-white leading-[1.04] tracking-tight mb-6">
+              Landing pages, sites
+              <br />
+              <span className="text-[#FFE600]">e plataformas web,</span>
+              <br />
+              feitos sob medida.
+            </h1>
+            <div className="relative max-w-lg mx-auto" style={{ height: "7rem" }}>
+              <p className="absolute inset-x-0 text-white/55 text-base md:text-lg leading-relaxed text-center"
+                style={{ opacity: subVisible ? 1 : 0, transform: subVisible ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.5s ease, transform 0.5s ease" }}>
+                {HERO_SUBS[subIdx]}
+              </p>
+            </div>
+          </FadeUp>
+
+          {/* CTA */}
+          <FadeUp className="flex items-center justify-center mb-8 md:mb-12" delay={400}>
+            <a href="https://wa.me/5519989825980" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg font-semibold text-sm transition-all hover:scale-[1.02] shadow-lg"
+              style={{ background: "linear-gradient(135deg, #1E50C8 0%, #4F8EF7 100%)", color: "#fff", boxShadow: "0 8px 24px rgba(79,142,247,0.35)" }}>
+              <svg viewBox="0 0 32 32" className="w-4 h-4 fill-current shrink-0">
+                <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.651 4.823 1.788 6.845L2 30l7.388-1.762A13.94 13.94 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.46 11.46 0 0 1-5.84-1.596l-.418-.248-4.384 1.046 1.072-4.264-.272-.437A11.467 11.467 0 0 1 4.5 16C4.5 9.596 9.596 4.5 16 4.5S27.5 9.596 27.5 16 22.404 27.5 16 27.5zm6.29-8.61c-.345-.172-2.04-1.006-2.355-1.12-.315-.114-.545-.172-.774.172-.229.344-.888 1.12-1.089 1.35-.2.229-.4.258-.745.086-.344-.172-1.453-.535-2.768-1.708-1.023-.913-1.713-2.04-1.913-2.385-.2-.344-.021-.531.15-.702.155-.154.344-.4.516-.6.172-.2.229-.344.344-.573.114-.229.057-.43-.029-.601-.086-.172-.774-1.866-1.06-2.556-.28-.672-.562-.58-.774-.591l-.659-.011c-.229 0-.6.086-.914.43-.315.344-1.203 1.176-1.203 2.869s1.231 3.327 1.403 3.556c.172.229 2.423 3.7 5.872 5.19.82.354 1.46.566 1.959.724.823.262 1.572.225 2.164.137.66-.099 2.04-.834 2.327-1.64.287-.804.287-1.493.2-1.638-.086-.143-.315-.229-.66-.4z" />
+              </svg>
+              Entrar em contato
+            </a>
+          </FadeUp>
+
+          {/* Trust badges */}
+          <FadeUp className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-8 md:mb-16 text-sm text-white/45" delay={520}>
+            {["50+ projetos entregues", "7+ anos de experiência", "100% no prazo"].map((b) => (
+              <div key={b} className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-green-400 shrink-0" />
+                {b}
+              </div>
+            ))}
+          </FadeUp>
+
+          {/* Scroll indicator */}
+          <style>{`
+            @keyframes scroll-dot { 0% { transform:translateY(0);opacity:1; } 60% { transform:translateY(8px);opacity:.15; } 100% { transform:translateY(0);opacity:1; } }
+            @keyframes mouse-enter { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+            .scroll-mouse-wrap { animation: mouse-enter 0.7s cubic-bezier(.16,1,.3,1) 1.4s both; }
+            .scroll-dot { animation: scroll-dot 1.6s ease-in-out infinite; }
+          `}</style>
+          <div className="scroll-mouse-wrap flex flex-col items-center mt-8 md:mt-10 mb-16 md:mb-24">
+            <div style={{ width: 28, height: 44, borderRadius: 14, border: "2px solid rgba(255,255,255,0.25)", display: "flex", justifyContent: "center", paddingTop: 7 }}>
+              <div className="scroll-dot" style={{ width: 4, height: 8, borderRadius: 2, background: "rgba(255,255,255,0.5)" }} />
+            </div>
+          </div>
+
+          {/* Project carousel */}
+          <FadeUp delay={600} className="mb-6 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-400/80 mb-2">Portfólio</p>
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">Projetos que entregamos</h2>
+          </FadeUp>
+          <FadeUp delay={680}>
+            <ProjectCarousel />
+          </FadeUp>
+
+          {/* Clientes logos — desktop */}
+          <FadeUp className="hidden md:block mt-10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/clientes-logos.png" alt="Clientes" className="w-full max-w-4xl mx-auto opacity-80" />
+          </FadeUp>
+
+          {/* Clientes logos — mobile */}
+          <FadeUp className="block md:hidden mt-10">
+            <div className="relative overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/clientes-logos.png" alt="Clientes" className="w-[160%] max-w-none -ml-[30%] opacity-80" />
+              <div className="absolute inset-y-0 left-0 w-20 pointer-events-none" style={{ background: "linear-gradient(to right, #050D1A, transparent)" }} />
+              <div className="absolute inset-y-0 right-0 w-20 pointer-events-none" style={{ background: "linear-gradient(to left, #050D1A, transparent)" }} />
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* Floating WhatsApp button */}
+      <a href="https://wa.me/5519989825980" target="_blank" rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center size-14 rounded-full shadow-xl transition-transform hover:scale-110"
+        style={{ backgroundColor: "#25D366" }} aria-label="Falar no WhatsApp">
+        <svg viewBox="0 0 32 32" className="w-7 h-7 fill-white">
+          <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.651 4.823 1.788 6.845L2 30l7.388-1.762A13.94 13.94 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.46 11.46 0 0 1-5.84-1.596l-.418-.248-4.384 1.046 1.072-4.264-.272-.437A11.467 11.467 0 0 1 4.5 16C4.5 9.596 9.596 4.5 16 4.5S27.5 9.596 27.5 16 22.404 27.5 16 27.5zm6.29-8.61c-.345-.172-2.04-1.006-2.355-1.12-.315-.114-.545-.172-.774.172-.229.344-.888 1.12-1.089 1.35-.2.229-.4.258-.745.086-.344-.172-1.453-.535-2.768-1.708-1.023-.913-1.713-2.04-1.913-2.385-.2-.344-.021-.531.15-.702.155-.154.344-.4.516-.6.172-.2.229-.344.344-.573.114-.229.057-.43-.029-.601-.086-.172-.774-1.866-1.06-2.556-.28-.672-.562-.58-.774-.591l-.659-.011c-.229 0-.6.086-.914.43-.315.344-1.203 1.176-1.203 2.869s1.231 3.327 1.403 3.556c.172.229 2.423 3.7 5.872 5.19.82.354 1.46.566 1.959.724.823.262 1.572.225 2.164.137.66-.099 2.04-.834 2.327-1.64.287-.804.287-1.493.2-1.638-.086-.143-.315-.229-.66-.4z" />
+        </svg>
+      </a>
+    </div>
+  )
+}

@@ -165,7 +165,7 @@ function FloatIcon({
 function Logo({ size = "text-xl", invert = false }: { size?: string; invert?: boolean }) {
   return (
     <span className={`font-black tracking-tight ${size} ${invert ? "text-gray-900" : "text-white"}`}>
-      SY<span className="text-amber-400">NN</span>K
+      SY<span className="text-[#FFE600]">NN</span>K
     </span>
   )
 }
@@ -641,7 +641,7 @@ export default function SynnkPage() {
             <h1 className="text-5xl md:text-[72px] font-black text-white leading-[1.04] tracking-tight mb-6">
               Produtos digitais.
               <br />
-              <span className="text-amber-400">Completamente</span>
+              <span className="text-[#FFE600]">Completamente</span>
               <br />
               sincronizados.
             </h1>
@@ -932,7 +932,7 @@ export default function SynnkPage() {
                           <p className="text-xs font-medium text-white/75">{deliverable}</p>
                         </div>
                         {checkpoint && (
-                          <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                          <div className="flex items-center gap-1.5 text-xs text-[#FFE600] font-medium">
                             <CheckCircle2 className="size-3.5" />
                             Cliente aprova antes de avançar
                           </div>

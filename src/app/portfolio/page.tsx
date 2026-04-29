@@ -185,6 +185,150 @@ const ARTICLES = [
 ]
 
 /* ─────────────────────────────────────────────────────────────
+   Project Thumbnails — SVG illustrations por projeto
+   ───────────────────────────────────────────────────────────── */
+function ProjectThumb({ idx }: { idx: number }) {
+  if (idx === 0) return (
+    // Droneiros Voluntários — mapa + drone
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 208" fill="none">
+      {Array.from({ length: 4 }, (_, r) => Array.from({ length: 8 }, (_, c) => (
+        <rect key={`${r}-${c}`} x={c * 50 + 4} y={r * 50 + 4} width={42} height={42} rx={3}
+          fill="rgba(8,145,178,.03)" stroke="rgba(8,145,178,.08)" strokeWidth={.8} />
+      )))}
+      {/* Arms */}
+      {([[186,96,158,74],[214,96,242,74],[186,96,158,122],[214,96,242,122]] as number[][]).map(([x1,y1,x2,y2],n) => (
+        <line key={n} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,.22)" strokeWidth={2} />
+      ))}
+      {/* Propellers */}
+      {([[158,74],[242,74],[158,122],[242,122]] as number[][]).map(([cx,cy],n) => (
+        <g key={n}>
+          <ellipse cx={cx} cy={cy} rx={14} ry={5} fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.3)" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={3} fill="rgba(255,255,255,.4)" />
+        </g>
+      ))}
+      {/* Body */}
+      <rect x={186} y={84} width={28} height={28} rx={5} fill="rgba(8,145,178,.25)" stroke="#0891B2" strokeWidth={1.5} />
+      <rect x={194} y={92} width={12} height={12} rx={2} fill="rgba(8,145,178,.6)" />
+      {/* Location pins */}
+      {([[110,155],[290,130]] as number[][]).map(([cx,cy],n) => (
+        <g key={n}>
+          <circle cx={cx} cy={cy} r={18} fill="rgba(8,145,178,.08)" stroke="rgba(8,145,178,.18)" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={7} fill="#0891B2" />
+          <circle cx={cx} cy={cy} r={4} fill="white" />
+        </g>
+      ))}
+      {/* Status bar */}
+      <rect x={16} y={174} width={130} height={20} rx={10} fill="rgba(8,145,178,.12)" stroke="rgba(8,145,178,.22)" strokeWidth={1} />
+      <circle cx={31} cy={184} r={4} fill="#0891B2" />
+      <rect x={42} y={181} width={68} height={6} rx={3} fill="rgba(255,255,255,.12)" />
+    </svg>
+  )
+
+  if (idx === 1) return (
+    // X Digital Brasil — grade de componentes
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 208" fill="none">
+      {([0,1,2] as number[]).map(r => ([0,1,2,3] as number[]).map(c => {
+        const highlighted = (r === 0 && c === 1) || (r === 1 && c === 2)
+        return (
+          <g key={`${r}-${c}`} transform={`translate(${c * 96 + 16},${r * 60 + 20})`}>
+            <rect width={80} height={48} rx={6}
+              fill={highlighted ? "rgba(124,58,237,.14)" : "rgba(255,255,255,.04)"}
+              stroke={highlighted ? "rgba(124,58,237,.5)" : "rgba(255,255,255,.08)"} strokeWidth={1} />
+            {r === 0 ? (
+              <>
+                <rect x={8} y={10} width={64} height={8} rx={3} fill={c === 1 ? "rgba(124,58,237,.4)" : "rgba(255,255,255,.1)"} />
+                <rect x={8} y={22} width={c === 0 ? 44 : c === 1 ? 56 : 48} height={6} rx={3} fill="rgba(255,255,255,.07)" />
+                <rect x={8} y={32} width={c === 0 ? 32 : c === 1 ? 40 : 36} height={6} rx={3} fill="rgba(255,255,255,.05)" />
+              </>
+            ) : (
+              <>
+                <rect x={8} y={10} width={24} height={24} rx={4}
+                  fill={highlighted ? "rgba(124,58,237,.2)" : "rgba(255,255,255,.05)"}
+                  stroke={highlighted ? "rgba(124,58,237,.35)" : "rgba(255,255,255,.06)"} strokeWidth={1} />
+                <rect x={38} y={14} width={34} height={6} rx={3} fill="rgba(255,255,255,.1)" />
+                <rect x={38} y={24} width={26} height={5} rx={2} fill="rgba(255,255,255,.06)" />
+              </>
+            )}
+          </g>
+        )
+      }))}
+      <defs>
+        <marker id="arr1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="rgba(124,58,237,.5)" />
+        </marker>
+      </defs>
+      <path d="M 192 44 Q 208 44 208 44" stroke="rgba(124,58,237,.5)" strokeWidth={1.5} strokeDasharray="4 3" markerEnd="url(#arr1)" />
+    </svg>
+  )
+
+  if (idx === 2) return (
+    // JHV Pack Tech — site institucional industrial
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 208" fill="none">
+      <rect x={30} y={14} width={340} height={180} rx={8} fill="rgba(255,255,255,.03)" stroke="rgba(34,197,94,.15)" strokeWidth={1} />
+      {/* Nav */}
+      <rect x={30} y={14} width={340} height={26} rx={8} fill="rgba(34,197,94,.07)" />
+      <circle cx={52} cy={27} r={6} fill="rgba(34,197,94,.45)" />
+      {([74, 94, 114] as number[]).map(x => <rect key={x} x={x} y={22} width={14} height={10} rx={5} fill="rgba(255,255,255,.08)" />)}
+      {/* Hero left */}
+      <rect x={46} y={52} width={110} height={9} rx={4} fill="rgba(34,197,94,.35)" />
+      <rect x={46} y={66} width={148} height={6} rx={3} fill="rgba(255,255,255,.1)" />
+      <rect x={46} y={77} width={120} height={6} rx={3} fill="rgba(255,255,255,.07)" />
+      <rect x={46} y={92} width={76} height={20} rx={10} fill="rgba(34,197,94,.28)" stroke="rgba(34,197,94,.55)" strokeWidth={1} />
+      {/* Machine right */}
+      <rect x={210} y={46} width={140} height={96} rx={6} fill="rgba(34,197,94,.05)" stroke="rgba(34,197,94,.14)" strokeWidth={1} />
+      <rect x={224} y={60} width={44} height={32} rx={3} fill="rgba(34,197,94,.1)" stroke="rgba(34,197,94,.2)" strokeWidth={1} />
+      <rect x={282} y={60} width={44} height={32} rx={3} fill="rgba(34,197,94,.1)" stroke="rgba(34,197,94,.2)" strokeWidth={1} />
+      <path d="M 220 100 L 354 100" stroke="rgba(34,197,94,.3)" strokeWidth={2} />
+      {([235, 264, 293, 322] as number[]).map(x => <rect key={x} x={x} y={103} width={15} height={15} rx={2} fill="rgba(34,197,94,.18)" stroke="rgba(34,197,94,.35)" strokeWidth={1} />)}
+      {/* Bottom cards */}
+      {([46, 158, 270] as number[]).map(x => (
+        <g key={x}>
+          <rect x={x} y={152} width={90} height={32} rx={5} fill="rgba(255,255,255,.03)" stroke="rgba(34,197,94,.1)" strokeWidth={1} />
+          <rect x={x + 8} y={160} width={44} height={6} rx={3} fill="rgba(34,197,94,.2)" />
+          <rect x={x + 8} y={170} width={32} height={5} rx={2} fill="rgba(255,255,255,.07)" />
+        </g>
+      ))}
+    </svg>
+  )
+
+  if (idx === 3) return (
+    // Synnk DS — tokens de design
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 208" fill="none">
+      <defs>
+        <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="white" stopOpacity=".18" />
+          <stop offset="1" stopColor="black" stopOpacity=".18" />
+        </linearGradient>
+      </defs>
+      {/* Color token swatches */}
+      {(["#0891B2","#7C3AED","#0F172A","#22C55E","#F59E0B","#EF4444"] as string[]).map((color, n) => (
+        <g key={n} transform={`translate(${n * 62 + 12},28)`}>
+          <rect width={52} height={52} rx={9} fill={color} opacity={.85} />
+          <rect width={52} height={52} rx={9} fill="url(#shine)" />
+        </g>
+      ))}
+      {/* Divider */}
+      <line x1={12} y1={98} x2={388} y2={98} stroke="rgba(255,255,255,.06)" />
+      {/* Token variable lines */}
+      {([
+        ["--primary", "#0891B2"],
+        ["--accent", "#7C3AED"],
+        ["--bg", "#0F172A"],
+        ["--success", "#22C55E"],
+      ] as [string,string][]).map(([varname, val], n) => (
+        <g key={n} transform={`translate(20,${114 + n * 20})`}>
+          <text fill="rgba(8,145,178,.65)" fontSize={9} fontFamily="monospace" dominantBaseline="middle">{varname}</text>
+          <text x={100} fill="rgba(255,255,255,.3)" fontSize={9} fontFamily="monospace" dominantBaseline="middle">{val};</text>
+          <text x={200} fill="rgba(124,58,237,.45)" fontSize={9} fontFamily="monospace" dominantBaseline="middle">/* token */</text>
+        </g>
+      ))}
+    </svg>
+  )
+
+  return null
+}
+
+/* ─────────────────────────────────────────────────────────────
    Decorative shapes
    ───────────────────────────────────────────────────────────── */
 function Dots({ className = "" }: { className?: string }) {
@@ -672,10 +816,8 @@ export default function PortfolioPage() {
               <FadeIn key={title} delay={i * 80}>
                 <div className="group rounded-2xl border border-[#E2E8F0] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white cursor-pointer">
                   {/* Image area */}
-                  <div className="relative h-52 bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center">
-                    <div className="absolute inset-0 opacity-30"
-                      style={{ backgroundImage: "radial-gradient(rgba(8,145,178,.4) 1px, transparent 1px)", backgroundSize: "16px 16px" }} />
-                    <div className="relative text-4xl font-black text-white/20 select-none">{String(i + 1).padStart(2, "0")}</div>
+                  <div className="relative h-52 bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+                    <ProjectThumb idx={i} />
                     <div className="absolute top-4 left-4 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
                       style={{ background: "rgba(8,145,178,.2)", color: "#67E8F9", border: "1px solid rgba(8,145,178,.3)" }}>
                       {tag}
