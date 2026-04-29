@@ -3,7 +3,7 @@ import { join } from "path";
 
 export async function GET() {
   const html = readFileSync(
-    join(process.cwd(), "public", "carrossel-demo.html"),
+    join(process.cwd(), "public", "home.html"),
     "utf-8"
   );
   return new Response(html, {
